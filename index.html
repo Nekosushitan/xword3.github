@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>実験用クロスワード</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(14, 30px); /* 14列のグリッド */
+            grid-template-rows: repeat(14, 30px);    /* 14行のグリッド */
+            gap: 1px;                                /* マス目の間隔 */
+        }
+
+        .grid-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white; /* デフォルトの背景色 */
+            position: relative; /* 添え字の表示に必要 */
+        }
+
+        .grid-item input {
+            width: 28px;    /* 入力フィールドの幅 */
+            height: 28px;   /* 入力フィールドの高さ */
+            border: 1px solid #cccccc;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 14px; /* フォントサイズ */
+        }
+
+        .black-cell {
+            background-color: black;
+        }
+
+        .black-cell input {
+            background-color: black;
+            color: transparent; /* テキストを見えなくする */
+            border: none; /* ボーダーを非表示 */
+        }
+
+        .number {
+            position: absolute;
+            color: black; /* 数字の色 */
+            font-size: 12px;
+            top: 2px; /* 上からの位置 */
+            right: 2px; /* 右からの位置 */
+        }
+
+        .hidden {
+            display: none; /* 要素を非表示にする */
+        }
+        #hint, #hint2 {
+            font-size: 0.7em;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container hidden" id="grid-container">
+        <!-- グリッドアイテムはJavaScriptで追加されます -->
+    </div>
+    <button onclick="startTimer()">Start 5-Minute Timer</button>
+    <div class="timer" id="timer">＊ひらがなの大文字小文字は区別しないので、小文字はすべて大文字で入力してください<br>例）まっちゃ→まつちや<br>＊指示があるまでスタートボタンを押さないでください</div>
+    
+    <p class="score hidden" id="score"></p>
+    <div class="hint hidden" id="hint">
+        <h1>タテのカギ</h1>
+        <ul>
+            <li>1．人間が住んでいる惑星</li>
+            <li>2．事実ではないこと</li>
+            <li>3．相手の尊厳や意思を破壊し加害者の要求に従うように強要すること</li>
+            <li>4．当たりはずれがある紙を箱から引くこと</li>
+            <li>6．焼き肉の部位の名前</li>
+            <li>7．舞台で上から吊り下げて劇の時などで開閉するもの</li>
+            <li>8．失敗や手落ちのこと</li>
+            <li>9．正面から対処しないで皮肉な態度で臨むこと（初めの文字は「し」ではありません）</li>
+            <li>11．秋田県名物の食品</li>
+            <li>13．オリオン座の一等星</li>
+            <li>15．日本の昔話、童話</li>
+            <li>17．後方、後ろのこと</li>
+            <li>18．中国、三国時代の武将</li>
+            <li>22．物事の道理が正しくわかること</li>
+            <li>24．秋が旬の食材</li>
+            <li>26．カフェチェーンの1つ</li>
+            <li>27．企業の経営活動をまとめて財政状態を明らかにする技能</li>
+            <li>28．曲がりくねっていること、様々なことがあったことを表す四字熟語</li>
+            <li>30．国家が保有する軍隊全体を表す言葉</li>
+            <li>33．声によって音楽的な音を生み出す行為</li>
+            <li>34．寝具の1つ</li>
+            <li>36．肩こりや腰痛などの時に貼るもの、「貼って寝て気持ちいい〇〇〇〇〇」</li>
+            <li>37．非正規社員として就業期間のある働き方をすること</li>
+            <li>38．傾斜のある道</li>
+            <li>39．すいか、メロン、カボチャは〇〇科の植物</li>
+            <li>41．水中に潜り、身を隠す術、〇〇〇〇の術</li>
+            <li>45．古代ギリシアの数学者、物理学者、発明家</li>
+            <li>47．首と胸の間にあるS字型の骨</li>
+            <li>48．人それぞれの内面にある感覚的なもの</li>
+            <li>49．物事の大きさ</li>
+            <li>50．北方4島のうちの1つ</li>
+            <li>52．主に野菜の皮をむく事に用いる調理器具</li>
+            <li>53．機関車を題材としたアニメ</li>
+            <li>55．山菜の一種</li>
+            <li>57．スパイスの一種。〇〇の実</li>
+            <li>58．和服、着物の一種</li>
+            <li>60．実現するのが難しいこと</li>
+        </ul>
+
+        
+
+    </div>
+    <div class="hint hidden" id="hint2">
+        <h1>ヨコのカギ</h1>
+        <ul>
+            <li>1．アジアの国</li>
+            <li>5．有馬記念の行われる〇〇〇〇競馬場</li>
+            <li>10．家電の1つ</li>
+            <li>12．イエスキリストの誕生日、またそれを祝うイベント</li>
+            <li>14．天気のうちの1つ</li>
+            <li>16．主に病気やケガの後に行う機能回復訓練を表す言葉</li>
+            <li>19．自動車などの乗り物を操作すること</li>
+            <li>20．魚の名前でもあり国の名前でもある</li>
+            <li>21．前後左右に動くことを表わす動詞</li>
+            <li>22．学校で習う教科のうちの1つ</li>
+            <li>23．漫画ドラゴンボールの主人公</li>
+            <li>25．和装において腰より下を覆うようにして着用する衣服の一種</li>
+            <li>26．窃盗等をする人を表す言葉</li>
+            <li>29．間取りを表すLDKのLにあたるもの</li>
+            <li>31．主に人間が住むための建物</li>
+            <li>32．2020（2021）年にオリンピックが開催された都市</li>
+            <li>35．現在の新1000円札に描かれている人物（苗字はすべて濁音なし）</li>
+            <li>40．家を空けている状態を表す言葉</li>
+            <li>42．麻雀で他人の牌で上がること</li>
+            <li>43．海にすむ生物で、スルメ〇〇、ダイオウ〇〇などの種類が生息する</li>
+            <li>44．主に車などに対して使われる後ろを指す言葉</li>
+            <li>46．契約内容に反した者が事前の合意をもとに相手方に払う金銭のこと</li>
+            <li>47．人家が集まって小集落をなしている場所</li>
+            <li>48．交通の要所に設置された徴税や検問を行う施設</li>
+            <li>50．12年周期で神様を表す動物がそれぞれの年を象徴するもの</li>
+            <li>51．アイスの一種</li>
+            <li>53．グラウンドを整備するときの用具</li>
+            <li>54．〇〇〇〇ラーメン</li>
+            <li>56．旅行用カバンの一種</li>
+            <li>58．寝ているときに見るもの</li>
+            <li>59．周囲を海や湖に囲まれた陸地</li>
+            <li>60．漢字で「百足」と書く生物</li>
+            <li>61．日本のコンビニの1つ</li>
+            <li>62．アルコール度数96度の世界最高の純度を誇る酒</li>
+        </ul>
+
+    <script>
+        // グリッドコンテナを取得
+        const gridContainer = document.getElementById('grid-container');
+        const hint = document.getElementById('hint');
+        const hint2 = document.getElementById('hint2');
+        
+
+        // 14×14 = 196個の.grid-item要素を作成
+        const totalItems = 14 * 14;
+
+        for (let i = 0; i < totalItems; i++) {
+            // 新しい.grid-item要素を作成
+            const gridItem = document.createElement('div');
+            gridItem.classList.add('grid-item');
+
+            // 入力フィールドを作成
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.maxLength = 1;  // 1文字しか入力できないようにする
+
+            // 入力フィールドを.grid-itemに追加
+            gridItem.appendChild(inputField);
+            
+            // 特定のセルを黒く塗りつぶす
+            if (i === 5 || i === 10 || i === 12 || i === 15 || i === 20 || i === 22 || i === 30 || i === 32 || i === 37 || i === 39 || i === 40 || i === 46 || i === 49 || i === 53 || i === 56 || i === 58 || i === 59 || i === 65 || i === 66 || i === 74 || i === 76 || i === 81 || i === 89 || i === 91 || i === 92 || i === 93 || i === 95 || i === 96 || i === 99 || i === 100 || i === 111 || i === 114 || i === 116 || i === 119 || i === 122 || i === 123 || i === 126 || i === 132 || i === 135 || i === 138 || i === 142 || i === 144 || i === 148 || i === 152 || i === 158 || i === 165 || i === 169 || i === 171 || i === 172 || i === 173 || i === 175 || i === 178 || i === 190
+
+             ) {
+                gridItem.classList.add('black-cell');
+                inputField.disabled = true; // 入力を無効にする
+            }
+
+            // 添え字を追加する
+            if (i === 0 || i === 2 || i === 3 || i === 4 || i === 6 || i === 7 || i === 9 || i === 11 || i === 13 || i === 16 || i === 19 || i === 23 || i === 24 || i === 28 || i === 29 || i === 33 || i === 34 || i === 36 || i === 42 || i === 47 || i === 50 || i === 54 || i === 60 || i === 63 || i === 67 || i === 70 || i === 72 || i === 73 || i === 77 || i === 80 || i === 82 || i === 84 || i === 88 || i === 90 || i === 101 || i === 103 || i === 106 || i === 107 || i === 110 || i === 112 || i === 113 || i === 117 || i === 120 || i === 124 || i === 125 || i === 127 || i === 133 || i === 136 || i === 137 || i === 138 || i === 140 || i === 145 || i === 146 || i === 149 || i === 154 || i === 156 || i === 159 || i === 162 || i === 166 || i === 176 || i === 179 || i === 182 || i === 191
+
+            ) {
+                const number = document.createElement('div');
+                number.classList.add('number');
+                if (i === 0) {
+                    number.textContent = '1';
+                } else if (i === 2) {
+                    number.textContent = '2';
+                } else if (i === 3) {
+                    number.textContent = '3';
+                } else if (i === 4) {
+                    number.textContent = '4';
+                } else if (i === 6) {
+                    number.textContent = '5';
+                } else if (i === 7) {
+                    number.textContent = '6';
+                } else if (i === 9) {
+                    number.textContent = '7';
+                } else if (i === 11) {
+                    number.textContent = '8';
+                } else if (i === 13) {
+                    number.textContent = '9';
+                } else if (i === 16) {
+                    number.textContent = '10';
+                } else if (i === 19) {
+                    number.textContent = '11';
+                } else if (i === 23) {
+                    number.textContent = '12';
+                } else if (i === 24) {
+                    number.textContent = '13';
+                } else if (i === 28) {
+                    number.textContent = '14';
+                } else if (i === 29) {
+                    number.textContent = '15';
+                } else if (i === 33) {
+                    number.textContent = '16';
+                } else if (i === 34) {
+                    number.textContent = '17';
+                } else if (i === 36) {
+                    number.textContent = '18';
+                } else if (i === 42) {
+                    number.textContent = '19';
+                } else if (i === 47) {
+                    number.textContent = '20';
+                } else if (i === 50) {
+                    number.textContent = '21';
+                } else if (i === 54) {
+                    number.textContent = '22';
+                } else if (i === 60) {
+                    number.textContent = '23';
+                } else if (i === 63) {
+                    number.textContent = '24';
+                } else if (i === 67) {
+                    number.textContent = '25';
+                } else if (i === 70) {
+                    number.textContent = '26';
+                } else if (i === 72) {
+                    number.textContent = '27';
+                } else if (i === 73) {
+                    number.textContent = '28';
+                } else if (i === 77) {
+                    number.textContent = '29';
+                } else if (i === 80) {
+                    number.textContent = '30';
+                } else if (i === 82) {
+                    number.textContent = '31';
+                } else if (i === 84) {
+                    number.textContent = '32';
+                } else if (i === 88) {
+                    number.textContent = '33';
+                } else if (i === 90) {
+                    number.textContent = '34';
+                } else if (i === 101) {
+                    number.textContent = '35';
+                } else if (i === 103) {
+                    number.textContent = '36';
+                } else if (i === 106) {
+                    number.textContent = '37';
+                } else if (i === 107) {
+                    number.textContent = '38';
+                } else if (i === 110) {
+                    number.textContent = '39';
+                } else if (i === 112) {
+                    number.textContent = '40';
+                } else if (i === 113) {
+                    number.textContent = '41';
+                } else if (i === 117) {
+                    number.textContent = '42';
+                } else if (i === 120) {
+                    number.textContent = '43';
+                } else if (i === 124) {
+                    number.textContent = '44';
+                } else if (i === 125) {
+                    number.textContent = '45';
+                } else if (i === 127) {
+                    number.textContent = '46';
+                } else if (i === 133) {
+                    number.textContent = '47';
+                } else if (i === 136) {
+                    number.textContent = '48';
+                } else if (i === 137) {
+                    number.textContent = '49';
+                } else if (i === 138) {
+                    number.textContent = '50';
+                } else if (i === 140) {
+                    number.textContent = '51';
+                } else if (i === 145) {
+                    number.textContent = '52';
+                } else if (i === 146) {
+                    number.textContent = '53';
+                } else if (i === 149) {
+                    number.textContent = '54';
+                } else if (i === 154) {
+                    number.textContent = '55';
+                } else if (i === 156) {
+                    number.textContent = '56';
+                } else if (i === 159) {
+                    number.textContent = '57';
+                } else if (i === 162) {
+                    number.textContent = '58';
+                } else if (i === 166) {
+                    number.textContent = '59';
+                } else if (i === 176) {
+                    number.textContent = '60';
+                } else if (i === 179) {
+                    number.textContent = '61';
+                } else if (i === 182) {
+                    number.textContent = '62';
+                } else if (i === 191) {
+                    number.textContent = '63';
+                }
+                gridItem.appendChild(number);
+            }           
+
+            // .grid-itemを.grid-containerに追加
+            gridContainer.appendChild(gridItem);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+        const gridItems = document.querySelectorAll('.grid-item input');
+        const gridSize = 14; // グリッドの幅と高さ（14x14）
+
+        // 入力フィールドにフォーカスが当たっているときに、矢印キーで移動
+        gridItems.forEach((item, index) => {
+            item.addEventListener('keydown', (e) => {
+                let row = Math.floor(index / gridSize);  // 現在のセルの行
+                let col = index % gridSize;              // 現在のセルの列
+
+                switch (e.key) {
+                    case 'ArrowUp':
+                        if (row > 0) {
+                            let nextIndex = (row - 1) * gridSize + col;
+                            gridItems[nextIndex].focus(); // 上のセルにフォーカスを移動
+                        }
+                        break;
+
+                    case 'ArrowDown':
+                        if (row < gridSize - 1) {
+                            let nextIndex = (row + 1) * gridSize + col;
+                            gridItems[nextIndex].focus(); // 下のセルにフォーカスを移動
+                        }
+                        break;
+
+                    case 'ArrowLeft':
+                        if (col > 0) {
+                            let nextIndex = row * gridSize + (col - 1);
+                            gridItems[nextIndex].focus(); // 左のセルにフォーカスを移動
+                        }
+                        break;
+
+                    case 'ArrowRight':
+                        if (col < gridSize - 1) {
+                            let nextIndex = row * gridSize + (col + 1);
+                            gridItems[nextIndex].focus(); // 右のセルにフォーカスを移動
+                        }
+                        break;
+                }
+            });
+        });
+    });
+
+
+        function startTimer() {
+            // スタートボタンを押した瞬間にボタンを無効化
+            const btn = document.querySelector("button");
+            btn.disabled = true;
+            
+            // グリッドコンテナを表示する
+            gridContainer.classList.remove('hidden');
+            hint.classList.remove('hidden');
+            hint2.classList.remove('hidden');
+            
+            const timerDisplay = document.getElementById('timer');
+            let totalTime = 300; // 5分（300秒）
+
+            // タイマーの表示を更新する関数
+            function updateDisplay() {
+                const minutes = Math.floor(totalTime / 60);
+                const seconds = totalTime % 60;
+                timerDisplay.textContent  = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+
+            //正解数を数える関数
+            function countCorrect(){
+                    const gridItems = document.querySelectorAll('.grid-item');
+                    let count = 0;
+
+                    // 各アイテムをチェックして、black-cellクラスが無ければカウント
+                    gridItems.forEach(item => {
+                        if (!item.classList.contains('black-cell')) {
+                            count++;
+                        }
+                    });
+                    const gridItems2 = document.querySelectorAll('.grid-item input');
+                    let count1 = 0;
+                    const answer =             [
+                                                    'ち', 'ゆ', 'う', 'ご', 'く', 'あ', 'な', 'か', 'や', 'ま', 'あ', 'み', 'あ', 'は',
+                                                    'き', 'あ', 'そ', 'う', 'じ', 'き', 'あ', 'る', 'あ', 'く', 'り', 'す', 'ま', 'す',
+                                                    'ゆ', 'き', 'あ', 'も', 'あ', 'り', 'は', 'び', 'り', 'あ', 'げ', 'あ', 'あ', 'に',
+                                                    'う', 'ん', 'て', 'ん', 'あ', 'た', 'い', 'あ', 'ゆ', 'れ', 'る', 'あ', 'り', 'か',
+                                                    'あ', 'た', 'あ', 'あ', 'そ', 'ん', 'ご', 'く', 'う', 'あ', 'あ', 'は', 'か', 'ま',
+                                                    'ど', 'ろ', 'ぼ', 'う', 'あ', 'ぽ', 'あ', 'り', 'び', 'ん', 'ぐ', 'あ', 'い', 'え',
+                                                    'と', 'う', 'き', 'よ', 'う', 'あ', 'ふ', 'あ', 'あ', 'あ', 'ん', 'あ', 'あ', 'る',
+                                                    'ー', 'あ', 'あ', 'き', 'た', 'さ', 'と', 'し', 'ば', 'さ', 'ぶ', 'ろ', 'う', 'あ',
+                                                    'る', 'す', 'あ', 'よ', 'あ', 'ろ', 'ん', 'あ', 'い', 'か', 'あ', 'あ', 'り', 'あ',
+                                                    'あ', 'い', 'や', 'く', 'き', 'ん', 'あ', 'さ', 'と', 'あ', 'せ', 'き', 'あ', 'る',
+                                                    'え', 'と', 'あ', 'せ', 'あ', 'ぱ', 'ぴ', 'こ', 'あ', 'と', 'ん', 'ぼ', 'あ', 'き',
+                                                    'と', 'ん', 'こ', 'つ', 'あ', 'す', 'ー', 'つ', 'け', 'ー', 'す', 'あ', 'ゆ', 'め',
+                                                    'ろ', 'あ', 'ご', 'あ', 'あ', 'あ', 'ら', 'あ', 'し', 'ま', 'あ', 'む', 'か', 'で',
+                                                    'ふ', 'あ', 'み', 'り', 'ー', 'ま', 'ー', 'と', 'あ', 'す', 'ぴ', 'り', 'た', 'す'
+                                                ]
+
+
+
+
+                    for (let s = 0; s < answer.length; s++) {
+                        if(s < gridItems2.length && gridItems2[s].value === answer[s]){
+                            count1++;
+                        }
+                    }
+                    const scoreElement = document.getElementById('score');
+                    scoreElement.classList.remove('hidden');
+                    scoreElement.textContent = `正解数: ${count1} / ${count}`;
+                    
+
+
+                    
+            }
+            
+            // タイマーが終了したときに呼び出される関数
+            function onTimerComplete() {
+                alert('5分経過しました！');
+                countCorrect()//採点関数
+                // グリッドコンテナを非表示にする
+                gridContainer.classList.add('hidden');
+                hint.classList.add('hidden');
+                hint2.classList.add('hidden');
+                // タイマー表示もリセットする
+                timerDisplay.textContent = '5:00';
+                // スタートボタンを再度有効化
+               
+                
+               
+                    
+
+
+
+            }
+
+            
+
+           
+           
+
+            
+
+            // 1秒ごとにカウントダウン
+            const intervalId = setInterval(() => {
+                if (totalTime <= 0) {
+                    clearInterval(intervalId); // タイマーを停止
+                    onTimerComplete(); // タイマー終了時に呼び出す関数
+                    return;
+                }
+                totalTime--;
+                updateDisplay();
+            }, 1000);
+
+            // 初期表示を更新
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
